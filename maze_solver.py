@@ -17,61 +17,68 @@ class MazeSolver:
         
         queue = Queue() # A queue to add the nodes to visit
         queue.put((self.start, [self.start]))
-        explored = [self.start] # A list to store the visited nodes
+        explored = set() # A set to store explored nodes
+        explored.add(self.start)
+        visited = [] # A list to store the visited nodes (for visualisation purposes)
 
         while not queue.empty():
             # Visit the next node in the queue
             (node, path) = queue.get()
+            visited.append(node)
             if node == self.end:
-                return path, explored
+                return path, visited
             # Explore all the neighbours of the node
             for dx, dy in self.moves:
                 next_node = (node[0]+dx, node[1]+dy)
                 if (self.node_in_maze(next_node) and self.maze[next_node] == 0 and next_node not in explored):
-                    explored.append(next_node)
+                    explored.add(next_node)
                     queue.put((next_node, path + [next_node]))
 
-        return None, explored
+        return None, visited
     
     def dfs(self):
         
         stack = [(self.start, [self.start])] # A stack to add the nodes to visit
-        explored = [self.start] # A list to store the visited nodes
+        explored = set()
+        explored.add(self.start) 
+        visited = [] # A list to store the visited nodes (for visualisation purposes)
         
         while len(stack) > 0:
             # Visit the next node in the stack
             (node, path) = stack.pop()
+            visited.append(node)
             if node == self.end:
-                return path, explored
+                return path, visited
             # Explore all the neighbours of the node
             for dx, dy in self.moves:
                 next_node = (node[0]+dx, node[1]+dy)
                 if (self.node_in_maze(next_node) and self.maze[next_node] == 0 and next_node not in explored):
-                    explored.append(next_node)
+                    explored.add(next_node)
                     stack.append((next_node, path + [next_node]))
 
-        return None, explored
+        return None, visited
     
     def a_star(self):
 
         queue = [] # A priority queue to add the nodes to visit
         queue.append((0, self.start, [self.start]))
-        explored = [self.start] # A list to store the visited nodes
+        explored = set() # A set to store the explored nodes
+        explored.add(self.start)
+        visited = [] # A list to store the visited nodes (for visualisation purposes)
         
         while len(queue) > 0:
          
             # Visit the next node in the queue
             (cost, node, path) = queue.pop(0)
-            
-            # Base case: if the current node is the end point, return
+            visited.append(node)
             if node == self.end:
-                return path, explored
+                return path, visited
             
             # Visit all the neighbours of the node
             for dx, dy in self.moves:
                 next_node = (node[0]+dx, node[1]+dy)
                 if (self.node_in_maze(next_node) and self.maze[next_node] == 0 and next_node not in explored):
-                    explored.append(next_node)
+                    explored.add(next_node)
                     path_cost = len(path) # Number of steps taken so far
                     goal_proximity = abs(self.end[0] - next_node[0]) + abs(self.end[1] - next_node[1]) # Manhattan distance to the goal
                     next_cost = path_cost + goal_proximity
@@ -80,7 +87,7 @@ class MazeSolver:
             # Sort the queue by cost        
             queue.sort(key=lambda x: x[0])
             
-        return None, explored
+        return None, visited
     
     def makrov_value_iteration(self, iterations=100, gamma=0.9):
 

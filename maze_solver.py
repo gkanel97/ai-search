@@ -6,7 +6,7 @@ class MazeSolver:
     def __init__(self, maze):
         self.maze = maze
         self.start = (1, 0)
-        self.end = (maze.shape[0] - 2, maze.shape[1] - 2)
+        self.end = (maze.shape[0] - 2, maze.shape[1] - 1)
         self.moves = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 
     def node_in_maze(self, node):
@@ -82,9 +82,13 @@ class MazeSolver:
             
         return None, explored
     
-    def makrov_value_iteration(self, iterations=100, gamma=0.9):
+    def makrov_value_iteration(self, iterations=25, gamma=0.9):
+
         # Initialize the value function
         value_function = np.zeros(self.maze.shape)
+        policy = [[self.moves[0] for _ in range(self.maze.shape[1])] for _ in range(self.maze.shape[0])]
+        history = dict(value=[value_function], policy=[policy])
+
         # Define the reward function
         reward_function = np.zeros(self.maze.shape)
         reward_function[self.end] = 1
@@ -98,44 +102,37 @@ class MazeSolver:
                         transition_probabilities[x, y, i] = 1
 
         # Perform the value iteration
-        new_value_function = np.zeros(self.maze.shape)
         for _ in range(iterations):
             for x in range(self.maze.shape[0]):
                 for y in range(self.maze.shape[1]):
+                    if self.maze[x, y] == 1:
+                        continue
                     if (x, y) == self.end:
-                        new_value_function[x, y] = 1
+                        value_function[x, y] = 1
                     else:
-                        valid_moves = []
+                        possible_moves = []
                         for i, (dx, dy) in enumerate(self.moves):
                             next_move = (x + dx, y + dy)
                             if self.node_in_maze(next_move) and self.maze[next_move] == 0:
-                                valid_moves.append(
+                                possible_moves.append(
                                     transition_probabilities[x, y, i] * (
                                         reward_function[next_move] + gamma * value_function[next_move]
                                     )
                                 )
-                        if valid_moves:
-                            new_value_function[x, y] = max(valid_moves)
-                value_function = new_value_function
-        return value_function
-    
-    # Update the value function based on the current policy
-    def update_value_function(self, policy, value_function, reward_function, transition_probabilities, gamma):
-        new_value_function = np.zeros(self.maze.shape)
-        for x in range(self.maze.shape[0]):
-            for y in range(self.maze.shape[1]):
-                if (x, y) == self.end:
-                    new_value_function[x, y] = 1
-                else:
-                    next_move = (x + self.moves[int(policy[x, y])])
-                    new_value_function[x, y] = (
-                        reward_function[x, y] + gamma * value_function[next_move]
-                    )
-        return new_value_function
+                            else:
+                                possible_moves.append(0)
+                        value_function[x, y] = max(possible_moves)
+                        policy[x][y] = self.moves[np.argmax(possible_moves)]
+            history['value'].append(value_function.copy())
+            history['policy'].append(policy.copy())
+        return value_function, history
     
     def makrov_policy_iteration(self, iterations=100, gamma=0.9):
         # Initialize the value function
         value_function = np.zeros(self.maze.shape)
+        # Initialize the policy function
+        policy_function = [[self.moves[0] for _ in range(self.maze.shape[1])] for _ in range(self.maze.shape[0])]
+        policy_history = [policy_function]
         # Define the reward function
         reward_function = np.zeros(self.maze.shape)
         reward_function[self.end] = 1
@@ -149,24 +146,47 @@ class MazeSolver:
                         transition_probabilities[x, y, i] = 1
 
         # Perform the policy iteration
-        policy = np.zeros(self.maze.shape)
         for _ in range(iterations):
-            # Update the value function based on the current policy
-            value_function = self.update_value_function(policy, value_function, reward_function, transition_probabilities, gamma)
+            new_value_function = np.zeros(self.maze.shape)
+            new_policy_function = [[self.moves[0] for _ in range(self.maze.shape[1])] for _ in range(self.maze.shape[0])]
+
+            # Policy Evaluation
             for x in range(self.maze.shape[0]):
                 for y in range(self.maze.shape[1]):
                     if (x, y) == self.end:
-                        policy[x, y] = -1
+                        new_value_function[x, y] = 1
                     else:
-                        valid_moves = []
-                        for i, (dx, dy) in enumerate(self.moves):
-                            next_move = (x + dx, y + dy)
-                            if self.node_in_maze(next_move) and self.maze[next_move] == 0:
-                                valid_moves.append(
-                                    transition_probabilities[x, y, i] * (
-                                        reward_function[next_move] + gamma * value_function[next_move]
-                                    )
+                        dx, dy = policy_function[x][y]
+                        next_move = (x + dx, y + dy)
+                        if self.node_in_maze(next_move) and self.maze[next_move] == 0:
+                            i = self.moves.index(policy_function[x][y])
+                            new_value_function[x, y] = transition_probabilities[x, y, i] * (
+                                reward_function[next_move] + gamma * value_function[next_move]
+                            )
+
+            # Policy Improvement
+            policy_stable = True
+            for x in range(self.maze.shape[0]):
+                for y in range(self.maze.shape[1]):
+                    old_action = policy_function[x][y]
+                    valid_moves = []
+                    for i, (dx, dy) in enumerate(self.moves):
+                        next_move = (x + dx, y + dy)
+                        if self.node_in_maze(next_move) and self.maze[next_move] == 0:
+                            valid_moves.append(
+                                transition_probabilities[x, y, i] * (
+                                    reward_function[next_move] + gamma * new_value_function[next_move]
                                 )
-                        if valid_moves:
-                            policy[x, y] = np.argmax(valid_moves)
-        return policy
+                            )
+                    if valid_moves:
+                        new_policy_function[x][y] = self.moves[np.argmax(valid_moves)]
+                        if old_action != new_policy_function[x][y]:
+                            policy_stable = False
+
+            value_function = new_value_function
+            policy_function = new_policy_function
+            policy_history.append(policy_function)
+            if policy_stable:
+                break
+        return policy_function, policy_history
+        

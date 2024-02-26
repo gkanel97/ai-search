@@ -132,6 +132,14 @@ class MazeSolver:
         return value_function, history
     
     def makrov_policy_iteration(self, iterations=100, gamma=0.9):
+
+        def has_converged(policy_history, n):
+            # If there are less than n policies, return False
+            if len(policy_history) < n:
+                return False
+            # Check if the last n policies are the same
+            return all(policy == policy_history[-1] for policy in policy_history[-n:])
+
         # Initialize the value function
         value_function = np.zeros(self.maze.shape)
         # Initialize the policy function
@@ -169,7 +177,6 @@ class MazeSolver:
                             )
 
             # Policy Improvement
-            policy_stable = True
             for x in range(self.maze.shape[0]):
                 for y in range(self.maze.shape[1]):
                     old_action = policy[x][y]
@@ -185,14 +192,15 @@ class MazeSolver:
                         else:
                             possible_moves.append(0)
                     new_policy[x][y] = self.moves[np.argmax(possible_moves)]
-                    if old_action != new_policy[x][y]:
-                        policy_stable = False
 
+            # Update the value function and the policy
             history['value'].append(new_value_function)
             history['policy'].append(new_policy)
             value_function = new_value_function
             policy = new_policy
-            if policy_stable:
+
+            # Check for convergence
+            if has_converged(history['policy'], 5):
                 break
         return policy, value_function, history
         

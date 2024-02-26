@@ -135,8 +135,8 @@ class MazeSolver:
         # Initialize the value function
         value_function = np.zeros(self.maze.shape)
         # Initialize the policy function
-        policy_function = [[self.moves[0] for _ in range(self.maze.shape[1])] for _ in range(self.maze.shape[0])]
-        policy_history = [policy_function]
+        policy = [[self.moves[0] for _ in range(self.maze.shape[1])] for _ in range(self.maze.shape[0])]
+        history = dict(value=[value_function], policy=[policy])
         # Define the reward function
         reward_function = np.zeros(self.maze.shape)
         reward_function[self.end] = 1
@@ -152,7 +152,7 @@ class MazeSolver:
         # Perform the policy iteration
         for _ in range(iterations):
             new_value_function = np.zeros(self.maze.shape)
-            new_policy_function = [[self.moves[0] for _ in range(self.maze.shape[1])] for _ in range(self.maze.shape[0])]
+            new_policy = [[self.moves[0] for _ in range(self.maze.shape[1])] for _ in range(self.maze.shape[0])]
 
             # Policy Evaluation
             for x in range(self.maze.shape[0]):
@@ -160,10 +160,10 @@ class MazeSolver:
                     if (x, y) == self.end:
                         new_value_function[x, y] = 1
                     else:
-                        dx, dy = policy_function[x][y]
+                        dx, dy = policy[x][y]
                         next_move = (x + dx, y + dy)
                         if self.node_in_maze(next_move) and self.maze[next_move] == 0:
-                            i = self.moves.index(policy_function[x][y])
+                            i = self.moves.index(policy[x][y])
                             new_value_function[x, y] = transition_probabilities[x, y, i] * (
                                 reward_function[next_move] + gamma * value_function[next_move]
                             )
@@ -172,25 +172,27 @@ class MazeSolver:
             policy_stable = True
             for x in range(self.maze.shape[0]):
                 for y in range(self.maze.shape[1]):
-                    old_action = policy_function[x][y]
-                    valid_moves = []
+                    old_action = policy[x][y]
+                    possible_moves = []
                     for i, (dx, dy) in enumerate(self.moves):
                         next_move = (x + dx, y + dy)
                         if self.node_in_maze(next_move) and self.maze[next_move] == 0:
-                            valid_moves.append(
+                            possible_moves.append(
                                 transition_probabilities[x, y, i] * (
                                     reward_function[next_move] + gamma * new_value_function[next_move]
                                 )
                             )
-                    if valid_moves:
-                        new_policy_function[x][y] = self.moves[np.argmax(valid_moves)]
-                        if old_action != new_policy_function[x][y]:
-                            policy_stable = False
+                        else:
+                            possible_moves.append(0)
+                    new_policy[x][y] = self.moves[np.argmax(possible_moves)]
+                    if old_action != new_policy[x][y]:
+                        policy_stable = False
 
+            history['value'].append(new_value_function)
+            history['policy'].append(new_policy)
             value_function = new_value_function
-            policy_function = new_policy_function
-            policy_history.append(policy_function)
+            policy = new_policy
             if policy_stable:
                 break
-        return policy_function, policy_history
+        return policy, value_function, history
         

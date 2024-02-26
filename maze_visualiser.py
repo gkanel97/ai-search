@@ -1,4 +1,6 @@
 import matplotlib as mpl
+from matplotlib import animation
+import numpy as np
 import matplotlib.pyplot as plt
 
 class MazeVisualiser:
@@ -49,3 +51,32 @@ class MazeVisualiser:
             plt.savefig(filename, bbox_inches='tight', pad_inches=0)
         else:
             plt.show()
+
+    '''
+    Create an animation with the evolution of the value function
+    A heatmap is used to represent the value function at each iteration over the maze
+    Arguments:
+    history -- list of value functions
+    filename -- name of the file to save the animation
+    '''
+
+    def draw_value_function(self, history, filename=None):
+        fig, ax = plt.subplots(figsize=(10, 10))
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+        def animate(i):
+            ax.clear()
+            value_function = np.array(history['value'][i])
+            x_coords = np.arange(value_function.shape[1])
+            y_coords = np.arange(value_function.shape[0])
+            X, Y = np.meshgrid(x_coords, y_coords)
+            ax.imshow(self.maze, cmap=plt.cm.binary, interpolation='nearest')
+            scatter = ax.scatter(X, Y, c=value_function, cmap=plt.cm.viridis, s=700, alpha=self.maze != 1)
+            ax.set_title(f'Value Function at Iteration {i + 1}')
+
+        ani = animation.FuncAnimation(fig, animate, frames=len(history['value']), interval=500, repeat_delay=1000)
+        if filename is not None:
+            ani.save(filename, writer='imagemagick')
+        plt.show()
+

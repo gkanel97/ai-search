@@ -8,7 +8,7 @@ class MazeVisualiser:
     def __init__(self, maze):
         self.maze = maze
 
-    def draw_maze(self, path=None, explored=None, filename=None):
+    def draw_search_algorithm(self, path=None, explored=None, filename=None):
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10,10), layout='constrained')
     
         # Set the border color to white
@@ -38,29 +38,19 @@ class MazeVisualiser:
             # cbar = plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation='vertical', extend='max')
             # cbar.set_label('Exploration Steps')
 
-        # Draw entry and exit arrows
-        ax.arrow(
-            self.maze.shape[1]-1.3, self.maze.shape[0]-2, 0.4, 0, 
-            fc='black', ec='black', head_width=0.3, head_length=0.3
-        )
-    
-        ax.set_xticks([])
-        ax.set_yticks([])
-
         if filename is not None:
             plt.savefig(filename, bbox_inches='tight', pad_inches=0)
         else:
             plt.show()
 
     '''
-    Create an animation with the evolution of the value function
+    Create an animation with the evolution of the value function and policy
     A heatmap is used to represent the value function at each iteration over the maze
     Arguments:
-    history -- list of value functions
+    history -- dictionary with list of values and policies
     filename -- name of the file to save the animation
     '''
-
-    def draw_value_function(self, history, filename=None):
+    def draw_value_policy(self, history, filename=None):
 
         max_value = np.max(history['value'])
 

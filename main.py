@@ -19,15 +19,15 @@ if __name__ == '__main__':
     visualiser = MazeVisualiser(maze)
     maze_solver = MazeSolver(maze)
     path, exploration = maze_solver.bfs()
-    visualiser.draw_maze(path=path, explored=exploration, filename='./figures/bfs.png')
+    visualiser.draw_search_algorithm(path=path, explored=exploration, filename='./figures/bfs.png')
     path, exploration = maze_solver.dfs()
-    visualiser.draw_maze(path=path, explored=exploration, filename='./figures/dfs.png')
+    visualiser.draw_search_algorithm(path=path, explored=exploration, filename='./figures/dfs.png')
     path, exploration = maze_solver.a_star()
-    visualiser.draw_maze(path=path, explored=exploration, filename='./figures/a_star.png')
+    visualiser.draw_search_algorithm(path=path, explored=exploration, filename='./figures/a_star.png')
     value_function, history = maze_solver.makrov_value_iteration(iterations=50)
-    visualiser.draw_value_function(history, filename='./figures/value_iteration.gif')
+    visualiser.draw_value_policy(history, filename='./figures/value_iteration.gif')
     policy, value_function, history = maze_solver.makrov_policy_iteration()
-    visualiser.draw_value_function(history, filename='./figures/policy_iteration.gif')
+    visualiser.draw_value_policy(history, filename='./figures/policy_iteration.gif')
 
     # import time
 

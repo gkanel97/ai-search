@@ -14,12 +14,12 @@ def calculate_execution_time(solver_fn):
 
 if __name__ == '__main__':
     
-    maze_generator = MazeGenerator(dimension=3, random_seed=17)
+    maze_generator = MazeGenerator(dimension=5, random_seed=17)
     maze = maze_generator.generate_maze()
     visualiser = MazeVisualiser(maze)
     maze_solver = MazeSolver(maze)
-    value_function, history = maze_solver.makrov_value_iteration()
-    visualiser.draw_value_function(history)
+    value_function, history = maze_solver.makrov_value_iteration(iterations=50)
+    visualiser.draw_value_function(history, filename='value_iteration.gif')
     # path, exploration = maze_solver.bfs()
     # visualiser.draw_maze(path=path, explored=exploration, filename='./figures/bfs.png')
     # path, exploration = maze_solver.dfs()

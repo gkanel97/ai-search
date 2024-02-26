@@ -61,19 +61,48 @@ class MazeVisualiser:
     '''
 
     def draw_value_function(self, history, filename=None):
+
+        max_value = np.max(history['value'])
+
         fig, ax = plt.subplots(figsize=(10, 10))
         ax.set_xticks([])
         ax.set_yticks([])
 
         def animate(i):
             ax.clear()
-            value_function = np.array(history['value'][i])
+            value_function = np.array(history['value'])[i]
             x_coords = np.arange(value_function.shape[1])
             y_coords = np.arange(value_function.shape[0])
             X, Y = np.meshgrid(x_coords, y_coords)
             ax.imshow(self.maze, cmap=plt.cm.binary, interpolation='nearest')
             scatter = ax.scatter(X, Y, c=value_function, cmap=plt.cm.viridis, s=700, alpha=self.maze != 1)
-            ax.set_title(f'Value Function at Iteration {i + 1}')
+
+            for x, row in enumerate(value_function):
+                for y, col in enumerate(row):
+                    if self.maze[x, y] == 0:
+                        xx = X[x, y]
+                        yy = Y[x, y]
+                        ax.text(
+                            xx, yy, f'{col:.2f}', fontsize=8, ha='center', va='center', 
+                            color='black' if col > 0.4 * max_value else 'silver'
+                        )
+
+            policy = history['policy'][i]
+            for x, row in enumerate(policy):
+                for y, col in enumerate(row):
+                    xx = X[x, y]
+                    yy = Y[x, y]
+                    if col == (1, 0): # Down
+                        ax.arrow(xx, yy+0.2, 0, 0.001, head_length=0.1, head_width=0.1, fc='k', ec='k')
+                    elif col == (-1, 0): # Up
+                        ax.arrow(xx, yy-0.2, 0, -0.001, head_length=0.1, head_width=0.1, fc='k', ec='k')
+                    elif col == (0, 1): # Right
+                        ax.arrow(xx+0.2, yy, 0.001, 0, head_length=0.1, head_width=0.1, fc='k', ec='k')
+                    elif col == (0, -1): # Left
+                        ax.arrow(xx-0.2, yy, -0.001, 0, head_length=0.1, head_width=0.1, fc='k', ec='k')
+                    else:
+                        print(f"{x, y}: Invalid policy!")
+            ax.set_title(f"Iteration {i+1}")
 
         ani = animation.FuncAnimation(fig, animate, frames=len(history['value']), interval=500, repeat_delay=1000)
         if filename is not None:

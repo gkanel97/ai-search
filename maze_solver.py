@@ -82,7 +82,7 @@ class MazeSolver:
             
         return None, explored
     
-    def makrov_value_iteration(self, iterations=25, gamma=0.9):
+    def makrov_value_iteration(self, iterations=100, gamma=0.9):
 
         # Initialize the value function
         value_function = np.zeros(self.maze.shape)
@@ -103,12 +103,14 @@ class MazeSolver:
 
         # Perform the value iteration
         for _ in range(iterations):
+            new_value_function = np.zeros(self.maze.shape)
+            new_policy = [[self.moves[0] for _ in range(self.maze.shape[1])] for _ in range(self.maze.shape[0])]
             for x in range(self.maze.shape[0]):
                 for y in range(self.maze.shape[1]):
                     if self.maze[x, y] == 1:
                         continue
                     if (x, y) == self.end:
-                        value_function[x, y] = 1
+                        new_value_function[x, y] = 1
                     else:
                         possible_moves = []
                         for i, (dx, dy) in enumerate(self.moves):
@@ -121,10 +123,12 @@ class MazeSolver:
                                 )
                             else:
                                 possible_moves.append(0)
-                        value_function[x, y] = max(possible_moves)
-                        policy[x][y] = self.moves[np.argmax(possible_moves)]
-            history['value'].append(value_function.copy())
-            history['policy'].append(policy.copy())
+                        new_value_function[x, y] = max(possible_moves)
+                        new_policy[x][y] = self.moves[np.argmax(possible_moves)]
+            history['value'].append(new_value_function)
+            history['policy'].append(new_policy)
+            value_function = new_value_function
+            policy = new_policy
         return value_function, history
     
     def makrov_policy_iteration(self, iterations=100, gamma=0.9):

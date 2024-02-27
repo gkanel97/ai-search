@@ -1,5 +1,7 @@
 import random
 import numpy as np
+from mazelib import Maze
+from mazelib.generate.Prims import Prims
 
 class MazeGenerator:
 
@@ -7,7 +9,7 @@ class MazeGenerator:
         self.dim = dimension
         self.random_seed = random_seed
 
-    def generate_maze(self):
+    def random_dfs(self):
         if self.random_seed is not None:
             random.seed(self.random_seed)
 
@@ -43,4 +45,14 @@ class MazeGenerator:
         maze[1, 0] = 0
         maze[-2, -1] = 0
 
+        return maze
+    
+    def prim(self):
+        Maze.set_seed(self.random_seed)
+        m = Maze()
+        m.generator = Prims(self.dim, self.dim)
+        m.generate()
+        maze = np.array(m.grid)
+        maze[1, 0] = 0
+        maze[maze.shape[0] - 2, maze.shape[1] - 1] = 0
         return maze

@@ -90,7 +90,7 @@ class MazeSolver:
             
         return None, visited
     
-    def makrov_value_iteration(self, iterations=100, gamma=0.9):
+    def makrov_value_iteration(self, iterations=1e6, gamma=0.99):
 
         # Initialize the value function
         value_function = np.zeros(self.maze.shape)
@@ -147,10 +147,10 @@ class MazeSolver:
 
         return value_function, path, history
     
-    def makrov_policy_iteration(self, max_iterations=100, gamma=0.9):
+    def makrov_policy_iteration(self, max_iterations=1e6, gamma=0.99):
         
         def value_has_converged(new_value_function, value_function):
-            return np.all(np.isclose(new_value_function, value_function))
+            return np.all(np.isclose(new_value_function, value_function, atol=0.001, rtol=0.01))
         
         def policy_has_converged(new_policy, policy):
             return np.all(new_policy == policy)
@@ -214,7 +214,7 @@ class MazeSolver:
                                 )
                             )
                         else:
-                            possible_moves.append(0)
+                            possible_moves.append(-1)
                     
                     # Update policy only if a possible move is actually better than the rest
                     if np.all(np.isclose(possible_moves, possible_moves[0])):

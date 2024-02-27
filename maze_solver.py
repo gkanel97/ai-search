@@ -1,3 +1,4 @@
+import random
 import numpy as np
 from queue import Queue
 
@@ -147,13 +148,6 @@ class MazeSolver:
         return value_function, path, history
     
     def makrov_policy_iteration(self, max_iterations=100, gamma=0.9):
-
-        # def has_converged(policy_history, n):
-        #     # If there are less than n policies, return False
-        #     if len(policy_history) < n:
-        #         return False
-        #     # Check if the last n policies are the same
-        #     return all(policy == policy_history[-1] for policy in policy_history[-n:])
         
         def value_has_converged(new_value_function, value_function):
             return np.all(np.isclose(new_value_function, value_function))
@@ -164,7 +158,7 @@ class MazeSolver:
         # Initialize the value function
         value_function = np.zeros(self.maze.shape)
         # Initialize the policy function
-        policy = [[self.moves[0] for _ in range(self.maze.shape[1])] for _ in range(self.maze.shape[0])]
+        policy = [random.choices(self.moves, k=self.maze.shape[1]) for _ in range(self.maze.shape[0])]
         history = dict(value=[value_function], policy=[policy])
         # Define the reward function
         reward_function = np.zeros(self.maze.shape)
@@ -221,7 +215,12 @@ class MazeSolver:
                             )
                         else:
                             possible_moves.append(0)
-                    new_policy[x][y] = self.moves[np.argmax(possible_moves)]
+                    
+                    # Update policy only if a possible move is actually better than the rest
+                    if np.all(np.isclose(possible_moves, possible_moves[0])):
+                        new_policy[x][y] = policy[x][y]
+                    else:
+                        new_policy[x][y] = self.moves[np.argmax(possible_moves)]
 
             policy_converged = policy_has_converged(new_policy, policy)
             # Update the value function and the policy

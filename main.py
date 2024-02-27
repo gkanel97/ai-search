@@ -15,7 +15,7 @@ def calculate_execution_time(solver_fn):
 if __name__ == '__main__':
     
     maze_generator = MazeGenerator(dimension=5, random_seed=17)
-    maze = maze_generator.generate_maze()
+    maze = maze_generator.prim()
     visualiser = MazeVisualiser(maze)
     maze_solver = MazeSolver(maze)
     path, exploration = maze_solver.bfs()
@@ -24,10 +24,10 @@ if __name__ == '__main__':
     visualiser.draw_search_algorithm(path=path, explored=exploration, filename='./figures/dfs.png')
     path, exploration = maze_solver.a_star()
     visualiser.draw_search_algorithm(path=path, explored=exploration, filename='./figures/a_star.png')
-    value_function, history = maze_solver.makrov_value_iteration(iterations=50)
+    value_function, path, history = maze_solver.makrov_value_iteration(iterations=50)
     visualiser.draw_value_policy(history, filename='./figures/value_iteration.gif')
-    policy, value_function, history = maze_solver.makrov_policy_iteration()
-    visualiser.draw_value_policy(history, filename='./figures/policy_iteration.gif')
+    policy, value_function, path, history = maze_solver.makrov_policy_iteration()
+    visualiser.draw_value_policy(history, path, filename='./figures/policy_iteration.gif')
 
     # import time
 

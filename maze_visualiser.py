@@ -50,7 +50,7 @@ class MazeVisualiser:
     history -- dictionary with list of values and policies
     filename -- name of the file to save the animation
     '''
-    def draw_value_policy(self, history, filename=None):
+    def draw_value_policy(self, history, path=None, filename=None):
 
         max_value = np.max(history['value'])
 
@@ -80,22 +80,29 @@ class MazeVisualiser:
             policy = history['policy'][i]
             for x, row in enumerate(policy):
                 for y, col in enumerate(row):
-                    xx = X[x, y]
-                    yy = Y[x, y]
-                    if col == (1, 0): # Down
-                        ax.arrow(xx, yy+0.2, 0, 0.001, head_length=0.1, head_width=0.1, fc='k', ec='k')
-                    elif col == (-1, 0): # Up
-                        ax.arrow(xx, yy-0.2, 0, -0.001, head_length=0.1, head_width=0.1, fc='k', ec='k')
-                    elif col == (0, 1): # Right
-                        ax.arrow(xx+0.2, yy, 0.001, 0, head_length=0.1, head_width=0.1, fc='k', ec='k')
-                    elif col == (0, -1): # Left
-                        ax.arrow(xx-0.2, yy, -0.001, 0, head_length=0.1, head_width=0.1, fc='k', ec='k')
-                    else:
-                        print(f"{x, y}: Invalid policy!")
+                    if self.maze[x, y] == 0:
+                        xx = X[x, y]
+                        yy = Y[x, y]
+                        color='black' if value_function[x, y] > 0.4 * max_value else 'silver'
+                        if col == (1, 0): # Down
+                            ax.arrow(xx, yy+0.2, 0, 0.001, head_length=0.1, head_width=0.1, fc=color, ec=color)
+                        elif col == (-1, 0): # Up
+                            ax.arrow(xx, yy-0.2, 0, -0.001, head_length=0.1, head_width=0.1, fc=color, ec=color)
+                        elif col == (0, 1): # Right
+                            ax.arrow(xx+0.2, yy, 0.001, 0, head_length=0.1, head_width=0.1, fc=color, ec=color)
+                        elif col == (0, -1): # Left
+                            ax.arrow(xx-0.2, yy, -0.001, 0, head_length=0.1, head_width=0.1, fc=color, ec=color)
+                        else:
+                            print(f"{x, y}: Invalid policy!")   
             ax.set_title(f"Iteration {i+1}")
 
-        ani = animation.FuncAnimation(fig, animate, frames=len(history['value']), interval=500, repeat_delay=1000)
+            if i == len(history['value']) - 1 and path is not None:
+                x_coords = [x[1] for x in path]
+                y_coords = [y[0] for y in path]
+                ax.plot(x_coords, y_coords, '--', color='red', linewidth=2)
+
+        ani = animation.FuncAnimation(fig, animate, frames=len(history['value']), interval=1000, repeat_delay=5000)
         if filename is not None:
-            ani.save(filename, writer='imagemagick')
+            ani.save(filename, writer='pillow')
         plt.show()
 

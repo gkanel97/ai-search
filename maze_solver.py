@@ -136,16 +136,30 @@ class MazeSolver:
             history['policy'].append(new_policy)
             value_function = new_value_function
             policy = new_policy
-        return value_function, history
-    
-    def makrov_policy_iteration(self, iterations=100, gamma=0.9):
 
-        def has_converged(policy_history, n):
-            # If there are less than n policies, return False
-            if len(policy_history) < n:
-                return False
-            # Check if the last n policies are the same
-            return all(policy == policy_history[-1] for policy in policy_history[-n:])
+        # Find the path from the start to the end
+        path = [self.start]
+        while path[-1] != self.end:
+            x, y = path[-1]
+            dx, dy = policy[x][y]
+            path.append((x + dx, y + dy))
+
+        return value_function, path, history
+    
+    def makrov_policy_iteration(self, max_iterations=100, gamma=0.9):
+
+        # def has_converged(policy_history, n):
+        #     # If there are less than n policies, return False
+        #     if len(policy_history) < n:
+        #         return False
+        #     # Check if the last n policies are the same
+        #     return all(policy == policy_history[-1] for policy in policy_history[-n:])
+        
+        def value_has_converged(new_value_function, value_function):
+            return np.all(np.isclose(new_value_function, value_function))
+        
+        def policy_has_converged(new_policy, policy):
+            return np.all(new_policy == policy)
 
         # Initialize the value function
         value_function = np.zeros(self.maze.shape)
@@ -165,28 +179,37 @@ class MazeSolver:
                         transition_probabilities[x, y, i] = 1
 
         # Perform the policy iteration
-        for _ in range(iterations):
-            new_value_function = np.zeros(self.maze.shape)
+        iter = 0
+        while iter < max_iterations:
             new_policy = [[self.moves[0] for _ in range(self.maze.shape[1])] for _ in range(self.maze.shape[0])]
 
             # Policy Evaluation
-            for x in range(self.maze.shape[0]):
-                for y in range(self.maze.shape[1]):
-                    if (x, y) == self.end:
-                        new_value_function[x, y] = 1
-                    else:
-                        dx, dy = policy[x][y]
-                        next_move = (x + dx, y + dy)
-                        if self.node_in_maze(next_move) and self.maze[next_move] == 0:
-                            i = self.moves.index(policy[x][y])
-                            new_value_function[x, y] = transition_probabilities[x, y, i] * (
-                                reward_function[next_move] + gamma * value_function[next_move]
-                            )
+            while True:
+                iter += 1
+                new_value_function = np.zeros(self.maze.shape)
+                for x in range(self.maze.shape[0]):
+                    for y in range(self.maze.shape[1]):
+                        if (x, y) == self.end:
+                            new_value_function[x, y] = 1
+                        else:
+                            dx, dy = policy[x][y]
+                            next_move = (x + dx, y + dy)
+                            if self.node_in_maze(next_move) and self.maze[next_move] == 0:
+                                i = self.moves.index(policy[x][y])
+                                new_value_function[x, y] = transition_probabilities[x, y, i] * (
+                                    reward_function[next_move] + gamma * value_function[next_move]
+                                )
+                value_converged = value_has_converged(new_value_function, value_function)
+                value_function = new_value_function
+                history['value'].append(new_value_function)
+                if not value_converged:
+                    history['policy'].append(policy)
+                if value_converged or iter > max_iterations:
+                    break
 
             # Policy Improvement
             for x in range(self.maze.shape[0]):
                 for y in range(self.maze.shape[1]):
-                    old_action = policy[x][y]
                     possible_moves = []
                     for i, (dx, dy) in enumerate(self.moves):
                         next_move = (x + dx, y + dy)
@@ -200,14 +223,20 @@ class MazeSolver:
                             possible_moves.append(0)
                     new_policy[x][y] = self.moves[np.argmax(possible_moves)]
 
+            policy_converged = policy_has_converged(new_policy, policy)
             # Update the value function and the policy
-            history['value'].append(new_value_function)
             history['policy'].append(new_policy)
             value_function = new_value_function
             policy = new_policy
-
             # Check for convergence
-            if has_converged(history['policy'], 5):
+            if policy_converged:
+                # Find the path from the start to the end
+                path = [self.start]
+                while path[-1] != self.end:
+                    x, y = path[-1]
+                    dx, dy = policy[x][y]
+                    path.append((x + dx, y + dy))
                 break
-        return policy, value_function, history
+
+        return policy, value_function, path, history
         

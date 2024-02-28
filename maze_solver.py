@@ -1,15 +1,17 @@
+import sys
 import random
 import numpy as np
 from queue import Queue
 
 class MazeSolver:
 
-    def __init__(self, maze, keep_history=False):
+    def __init__(self, maze, keep_history=False, record_memory=False):
         self.maze = maze
         self.start = (1, 0)
         self.end = (maze.shape[0] - 2, maze.shape[1] - 1)
         self.moves = [(0, 1), (1, 0), (0, -1), (-1, 0)]
         self.keep_history = keep_history
+        self.record_memory = record_memory
 
     def node_in_maze(self, node):
         x, y = node
@@ -22,13 +24,14 @@ class MazeSolver:
         explored = set() # A set to store explored nodes
         explored.add(self.start)
         visited = [] # A list to store the visited nodes (for visualisation purposes)
+        used_memory = 0 # Memory usage
 
         while not queue.empty():
             # Visit the next node in the queue
             (node, path) = queue.get()
             visited.append(node)
             if node == self.end:
-                return path, visited
+                return path, visited, used_memory
             # Explore all the neighbours of the node
             for dx, dy in self.moves:
                 next_node = (node[0]+dx, node[1]+dy)
@@ -36,7 +39,13 @@ class MazeSolver:
                     explored.add(next_node)
                     queue.put((next_node, path + [next_node]))
 
-        return None, visited
+            if self.record_memory:
+                used_memo = max(
+                    used_memory, 
+                    sys.getsizeof(queue) + sys.getsizeof(explored) + sys.getsizeof(visited)
+            )
+
+        return None, visited, used_memory
     
     def dfs(self):
         
@@ -44,21 +53,28 @@ class MazeSolver:
         explored = set()
         explored.add(self.start) 
         visited = [] # A list to store the visited nodes (for visualisation purposes)
+        used_memory = 0 # Memory usage
         
         while len(stack) > 0:
             # Visit the next node in the stack
             (node, path) = stack.pop()
             visited.append(node)
             if node == self.end:
-                return path, visited
+                return path, visited, used_memory
             # Explore all the neighbours of the node
             for dx, dy in self.moves:
                 next_node = (node[0]+dx, node[1]+dy)
                 if (self.node_in_maze(next_node) and self.maze[next_node] == 0 and next_node not in explored):
                     explored.add(next_node)
                     stack.append((next_node, path + [next_node]))
+            
+            if self.record_memory:
+                used_memory = max(
+                    used_memory, 
+                    sys.getsizeof(stack) + sys.getsizeof(explored) + sys.getsizeof(visited)
+                )
 
-        return None, visited
+        return None, visited, used_memory
     
     def a_star(self):
 
@@ -67,6 +83,7 @@ class MazeSolver:
         explored = set() # A set to store the explored nodes
         explored.add(self.start)
         visited = [] # A list to store the visited nodes (for visualisation purposes)
+        used_memory = 0 # Memory usage
         
         while len(queue) > 0:
          
@@ -74,7 +91,7 @@ class MazeSolver:
             (cost, node, path) = queue.pop(0)
             visited.append(node)
             if node == self.end:
-                return path, visited
+                return path, visited, used_memory
             
             # Visit all the neighbours of the node
             for dx, dy in self.moves:
@@ -88,8 +105,14 @@ class MazeSolver:
 
             # Sort the queue by cost        
             queue.sort(key=lambda x: x[0])
+
+            if self.record_memory:
+                used_memory = max(
+                    used_memory, 
+                    sys.getsizeof(queue) + sys.getsizeof(explored) + sys.getsizeof(visited)
+                )
             
-        return None, visited
+        return None, visited, used_memory
     
     def value_has_converged(self, curr_array, next_array):
         return np.all(np.isclose(curr_array, next_array, atol=0.001, rtol=0.01))
@@ -125,6 +148,7 @@ class MazeSolver:
         reward_function = np.zeros(self.maze.shape)
         reward_function[self.end] = 1
         transition_probabilities = self.define_transition_probabilities()
+        used_memory = 0 # Memory usage
 
         # Perform the value iteration
         iter = 0
@@ -165,8 +189,19 @@ class MazeSolver:
             optimal_path = None
         else:
             optimal_path = self.find_path(policy)
+
+        if self.record_memory:
+            used_memory = (
+                sys.getsizeof(value_function) +
+                sys.getsizeof(new_value_function) +
+                sys.getsizeof(policy) +
+                sys.getsizeof(new_policy) +
+                sys.getsizeof(reward_function) +
+                sys.getsizeof(transition_probabilities) +
+                sys.getsizeof(optimal_path)
+            )
         
-        return value_function, optimal_path, history
+        return value_function, optimal_path, history, used_memory
     
     def makrov_policy_iteration(self, max_iterations=1e6, gamma=0.9):
 
@@ -177,6 +212,7 @@ class MazeSolver:
         reward_function = np.zeros(self.maze.shape)
         reward_function[self.end] = 1
         transition_probabilities = self.define_transition_probabilities()
+        used_memory = 0 # Memory usage
 
         # Perform the policy iteration
         iter = 0
@@ -244,6 +280,17 @@ class MazeSolver:
             optimal_path = None
         else:
             optimal_path = self.find_path(policy)
+
+        if self.record_memory:
+            used_memory = (
+                sys.getsizeof(value_function) +
+                sys.getsizeof(new_value_function) +
+                sys.getsizeof(policy) +
+                sys.getsizeof(new_policy) +
+                sys.getsizeof(reward_function) +
+                sys.getsizeof(transition_probabilities) +
+                sys.getsizeof(optimal_path)
+            )
             
-        return policy, value_function, optimal_path, history
+        return policy, value_function, optimal_path, history, used_memory
         

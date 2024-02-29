@@ -117,7 +117,7 @@ class MazeSolver:
         return None, visited, used_memory
     
     def value_has_converged(self, curr_array, next_array):
-        return np.all(np.isclose(curr_array, next_array))
+        return np.all(np.isclose(curr_array, next_array, atol=1e-9, rtol=1e-6))
     
     def policy_has_converged(self, curr_array, next_array):
         return np.all(curr_array == next_array)
@@ -136,6 +136,12 @@ class MazeSolver:
                     possible_moves.append(value_function[next_move])
                 else:
                     possible_moves.append(self.wall_penalty)
+            if np.max(possible_moves) == self.wall_penalty:
+                print("No path found!")
+                return None
+            if len(path) > 2 and path[-1] in (path[-2], path[-3]):
+                print("Stuck in a loop!")
+                return None
             best_dx, best_dy = self.moves[np.argmax(possible_moves)]
             path.append((x + best_dx, y + best_dy))
         return path
@@ -191,7 +197,7 @@ class MazeSolver:
             else:
                 value_function = new_value_function
 
-        if iter > max_iterations:
+        if iter >= max_iterations:
             print(f"value iteration did not converge after {max_iterations} iterations")
             optimal_path = None
         else:

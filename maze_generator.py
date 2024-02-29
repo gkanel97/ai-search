@@ -7,7 +7,7 @@ class MazeGenerator:
 
     def __init__(self, dimension, random_seed=None):
         self.dim = dimension
-        self.random_seed = random_seed
+        self.random_seed = int(random_seed) if random_seed is not None else None
 
     def random_dfs(self):
         if self.random_seed is not None:

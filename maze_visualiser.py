@@ -20,7 +20,7 @@ class MazeVisualiser:
         if path is not None:
             x_coords = [x[1] for x in path]
             y_coords = [y[0] for y in path]
-            ax.plot(x_coords, y_coords, '--', color='red', linewidth=2)
+            ax.plot(x_coords, y_coords, color='red', linewidth=2)
 
         if explored is not None:
             x_coords = [x[1] for x in explored]
@@ -77,23 +77,24 @@ class MazeVisualiser:
                             color='black' if col > 0.4 * max_value else 'silver'
                         )
 
-            policy = history['policy'][i]
-            for x, row in enumerate(policy):
-                for y, col in enumerate(row):
-                    if self.maze[x, y] == 0:
-                        xx = X[x, y]
-                        yy = Y[x, y]
-                        color='black' if value_function[x, y] > 0.4 * max_value else 'silver'
-                        if col == (1, 0): # Down
-                            ax.arrow(xx, yy+0.2, 0, 0.001, head_length=0.1, head_width=0.1, fc=color, ec=color)
-                        elif col == (-1, 0): # Up
-                            ax.arrow(xx, yy-0.2, 0, -0.001, head_length=0.1, head_width=0.1, fc=color, ec=color)
-                        elif col == (0, 1): # Right
-                            ax.arrow(xx+0.2, yy, 0.001, 0, head_length=0.1, head_width=0.1, fc=color, ec=color)
-                        elif col == (0, -1): # Left
-                            ax.arrow(xx-0.2, yy, -0.001, 0, head_length=0.1, head_width=0.1, fc=color, ec=color)
-                        else:
-                            print(f"{x, y}: Invalid policy!")   
+            if 'policy' in history and history['policy'] is not None:
+                policy = history['policy'][i]
+                for x, row in enumerate(policy):
+                    for y, col in enumerate(row):
+                        if self.maze[x, y] == 0:
+                            xx = X[x, y]
+                            yy = Y[x, y]
+                            color='black' if value_function[x, y] > 0.4 * max_value else 'silver'
+                            if col == (1, 0): # Down
+                                ax.arrow(xx, yy+0.2, 0, 0.001, head_length=0.1, head_width=0.1, fc=color, ec=color)
+                            elif col == (-1, 0): # Up
+                                ax.arrow(xx, yy-0.2, 0, -0.001, head_length=0.1, head_width=0.1, fc=color, ec=color)
+                            elif col == (0, 1): # Right
+                                ax.arrow(xx+0.2, yy, 0.001, 0, head_length=0.1, head_width=0.1, fc=color, ec=color)
+                            elif col == (0, -1): # Left
+                                ax.arrow(xx-0.2, yy, -0.001, 0, head_length=0.1, head_width=0.1, fc=color, ec=color)
+                            else:
+                                print(f"{x, y}: Invalid policy!")   
             ax.set_title(f"Iteration {i+1}")
 
             if i == len(history['value']) - 1 and path is not None:

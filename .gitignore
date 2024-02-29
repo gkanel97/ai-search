@@ -2,3 +2,4 @@ __pycache__
 figures
 maze.ipynb
 venv
+.DS_Store

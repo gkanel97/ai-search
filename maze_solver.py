@@ -1,7 +1,7 @@
-import sys
 import random
 import numpy as np
 from queue import Queue
+from utils import get_deep_size
 
 class MazeSolver:
 
@@ -10,6 +10,8 @@ class MazeSolver:
         self.start = (1, 0)
         self.end = (maze.shape[0] - 2, maze.shape[1] - 1)
         self.moves = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+        self.goal_reward = 1
+        self.wall_penalty = -1
         self.keep_history = keep_history
         self.record_memory = record_memory
 
@@ -40,9 +42,9 @@ class MazeSolver:
                     queue.put((next_node, path + [next_node]))
 
             if self.record_memory:
-                used_memo = max(
+                used_memory = max(
                     used_memory, 
-                    sys.getsizeof(queue) + sys.getsizeof(explored) + sys.getsizeof(visited)
+                    get_deep_size(queue) + get_deep_size(explored) + get_deep_size(visited)
             )
 
         return None, visited, used_memory
@@ -71,7 +73,7 @@ class MazeSolver:
             if self.record_memory:
                 used_memory = max(
                     used_memory, 
-                    sys.getsizeof(stack) + sys.getsizeof(explored) + sys.getsizeof(visited)
+                    get_deep_size(stack) + get_deep_size(explored) + get_deep_size(visited)
                 )
 
         return None, visited, used_memory
@@ -99,8 +101,8 @@ class MazeSolver:
                 if (self.node_in_maze(next_node) and self.maze[next_node] == 0 and next_node not in explored):
                     explored.add(next_node)
                     path_cost = len(path) # Number of steps taken so far
-                    goal_proximity = abs(self.end[0] - next_node[0]) + abs(self.end[1] - next_node[1]) # Manhattan distance to the goal
-                    next_cost = path_cost + goal_proximity
+                    heuristic = abs(self.end[0] - next_node[0]) + abs(self.end[1] - next_node[1]) # Manhattan distance to the goal
+                    next_cost = path_cost + heuristic
                     queue.append((next_cost, next_node, path + [next_node]))
 
             # Sort the queue by cost        
@@ -109,24 +111,33 @@ class MazeSolver:
             if self.record_memory:
                 used_memory = max(
                     used_memory, 
-                    sys.getsizeof(queue) + sys.getsizeof(explored) + sys.getsizeof(visited)
+                    get_deep_size(queue) + get_deep_size(explored) + get_deep_size(visited)
                 )
             
         return None, visited, used_memory
     
     def value_has_converged(self, curr_array, next_array):
-        return np.all(np.isclose(curr_array, next_array, atol=0.001, rtol=0.01))
+        return np.all(np.isclose(curr_array, next_array))
     
     def policy_has_converged(self, curr_array, next_array):
         return np.all(curr_array == next_array)
     
-    def find_path(self, policy):
-        max_iterations = 1e6 # To avoid infinite loops
+    def find_optimal_path(self, value_function):
         path = [self.start]
-        while path[-1] != self.end and len(path) < max_iterations:
+        while path[-1] != self.end:
             x, y = path[-1]
-            dx, dy = policy[x][y]
-            path.append((x + dx, y + dy))
+            possible_moves = []
+            for dx, dy in self.moves:
+                next_move = (x + dx, y + dy)
+                if next_move == self.end:
+                    path.append(next_move)
+                    return path
+                elif self.node_in_maze(next_move) and self.maze[next_move] == 0:
+                    possible_moves.append(value_function[next_move])
+                else:
+                    possible_moves.append(self.wall_penalty)
+            best_dx, best_dy = self.moves[np.argmax(possible_moves)]
+            path.append((x + best_dx, y + best_dy))
         return path
     
     def define_transition_probabilities(self):
@@ -143,10 +154,9 @@ class MazeSolver:
 
         # Initializations
         value_function = np.zeros(self.maze.shape)
-        policy = [[self.moves[0] for _ in range(self.maze.shape[1])] for _ in range(self.maze.shape[0])]
-        history = dict(value=[value_function], policy=[policy]) if self.keep_history else None
+        history = dict(value=[value_function]) if self.keep_history else None
         reward_function = np.zeros(self.maze.shape)
-        reward_function[self.end] = 1
+        reward_function[self.end] = self.goal_reward
         transition_probabilities = self.define_transition_probabilities()
         used_memory = 0 # Memory usage
 
@@ -154,13 +164,12 @@ class MazeSolver:
         iter = 0
         while iter < max_iterations:
             new_value_function = np.zeros(self.maze.shape)
-            new_policy = [[self.moves[0] for _ in range(self.maze.shape[1])] for _ in range(self.maze.shape[0])]
             for x in range(self.maze.shape[0]):
                 for y in range(self.maze.shape[1]):
                     if self.maze[x, y] == 1:
                         continue
                     if (x, y) == self.end:
-                        new_value_function[x, y] = 1
+                        new_value_function[x, y] = self.goal_reward
                     else:
                         possible_moves = []
                         for i, (dx, dy) in enumerate(self.moves):
@@ -172,33 +181,29 @@ class MazeSolver:
                                     )
                                 )
                             else:
-                                possible_moves.append(-1)
+                                possible_moves.append(self.wall_penalty)
                         new_value_function[x, y] = max(possible_moves)
-                        new_policy[x][y] = self.moves[np.argmax(possible_moves)]
             iter += 1
             if self.keep_history:
                 history['value'].append(new_value_function)
-                history['policy'].append(new_policy)
             if self.value_has_converged(new_value_function, value_function):
                 break
             else:
-                value_function, policy = new_value_function, new_policy
+                value_function = new_value_function
 
         if iter > max_iterations:
             print(f"value iteration did not converge after {max_iterations} iterations")
             optimal_path = None
         else:
-            optimal_path = self.find_path(policy)
+            optimal_path = self.find_optimal_path(value_function)
 
         if self.record_memory:
             used_memory = (
-                sys.getsizeof(value_function) +
-                sys.getsizeof(new_value_function) +
-                sys.getsizeof(policy) +
-                sys.getsizeof(new_policy) +
-                sys.getsizeof(reward_function) +
-                sys.getsizeof(transition_probabilities) +
-                sys.getsizeof(optimal_path)
+                get_deep_size(value_function) +
+                get_deep_size(new_value_function) +
+                get_deep_size(reward_function) +
+                get_deep_size(transition_probabilities) +
+                get_deep_size(optimal_path)
             )
         
         return value_function, optimal_path, history, used_memory
@@ -210,7 +215,7 @@ class MazeSolver:
         policy = [random.choices(self.moves, k=self.maze.shape[1]) for _ in range(self.maze.shape[0])]
         history = dict(value=[value_function], policy=[policy]) if self.keep_history else None
         reward_function = np.zeros(self.maze.shape)
-        reward_function[self.end] = 1
+        reward_function[self.end] = self.goal_reward
         transition_probabilities = self.define_transition_probabilities()
         used_memory = 0 # Memory usage
 
@@ -226,7 +231,7 @@ class MazeSolver:
                 for x in range(self.maze.shape[0]):
                     for y in range(self.maze.shape[1]):
                         if (x, y) == self.end:
-                            new_value_function[x, y] = 1
+                            new_value_function[x, y] = self.goal_reward
                         else:
                             dx, dy = policy[x][y]
                             next_move = (x + dx, y + dy)
@@ -257,13 +262,9 @@ class MazeSolver:
                                 )
                             )
                         else:
-                            possible_moves.append(-1)
+                            possible_moves.append(self.wall_penalty)
                     
-                    # Update policy only if a possible move is actually better than the rest
-                    if np.all(np.isclose(possible_moves, possible_moves[0])):
-                        new_policy[x][y] = policy[x][y]
-                    else:
-                        new_policy[x][y] = self.moves[np.argmax(possible_moves)]
+                    new_policy[x][y] = self.moves[np.argmax(possible_moves)]
 
             policy_converged = self.policy_has_converged(new_policy, policy)
             # Update the value function and the policy
@@ -279,17 +280,17 @@ class MazeSolver:
             print(f"Policy iteration did not converge after {max_iterations} iterations")
             optimal_path = None
         else:
-            optimal_path = self.find_path(policy)
+            optimal_path = self.find_optimal_path(value_function)
 
         if self.record_memory:
             used_memory = (
-                sys.getsizeof(value_function) +
-                sys.getsizeof(new_value_function) +
-                sys.getsizeof(policy) +
-                sys.getsizeof(new_policy) +
-                sys.getsizeof(reward_function) +
-                sys.getsizeof(transition_probabilities) +
-                sys.getsizeof(optimal_path)
+                get_deep_size(value_function) +
+                get_deep_size(new_value_function) +
+                get_deep_size(policy) +
+                get_deep_size(new_policy) +
+                get_deep_size(reward_function) +
+                get_deep_size(transition_probabilities) +
+                get_deep_size(optimal_path)
             )
             
         return policy, value_function, optimal_path, history, used_memory

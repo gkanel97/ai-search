@@ -16,6 +16,8 @@ class MazeVisualiser:
         fig.patch.set_linewidth(0)
 
         ax.imshow(self.maze, cmap=plt.cm.binary, interpolation='nearest')
+        ax.set_xticks([])
+        ax.set_yticks([])
 
         if path is not None:
             x_coords = [x[1] for x in path]
@@ -36,7 +38,7 @@ class MazeVisualiser:
 
             # Add colorbar
             cbar = plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation='horizontal', shrink=0.7)
-            cbar.set_label('Exploration Steps', fontsize=14)
+            cbar.set_label('Exploration Steps', fontsize=16)
 
         if filename is not None:
             plt.savefig(filename, bbox_inches='tight', pad_inches=0)

@@ -6,6 +6,7 @@ import os
 from maze_solver import MazeSolver
 from maze_generator import MazeGenerator
 from maze_visualiser import MazeVisualiser
+from plot_results import ResultsPlotter
 
 def calculate_execution_time(solver_fn):
     t_start = time.perf_counter()
@@ -89,6 +90,9 @@ def visualise_small_maze():
             
 if __name__ == '__main__':
 
-    visualise_small_maze()
+    # visualise_small_maze()
     # memory_usage_experiment()
     # execution_time_experiment()
+    plotter = ResultsPlotter()
+    plotter.plot_execution_time()
+    plotter.plot_memory_usage()

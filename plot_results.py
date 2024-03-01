@@ -25,29 +25,29 @@ def calculate_y_yerr(filename):
 files = ['bfs', 'dfs', 'a_star', 'value_iteration', 'policy_iteration']
 labels = ['BFS', 'DFS', 'A*', 'Value Iteration', 'Policy Iteration']
 colors = ['royalblue', 'darkgoldenrod', 'darkgreen', 'purple', 'black']
-# fig, ax = plt.subplots(figsize=(10, 6))
-# x = np.arange(10, 51, 5)
-# for f, l, c in zip(files, labels, colors):
-#     y, y_error = calculate_y_yerr(f)
-#     ax.plot(x, y, marker='o', markersize=5, linewidth=2, label=l, color=c)
-#     ax.fill_between(x, y-y_error, y+y_error, alpha=0.3)
-# ax.set_xlabel('Maze dimension', fontsize=12)
-# ax.set_ylabel('Execution time (sec)', fontsize=12)
-# ax.legend(ncols=5, loc='upper center', bbox_to_anchor=(0.5, 1.1), fontsize=11)
-# ax.semilogy()
-# plt.savefig('figures/exec_time.png', bbox_inches='tight')
-# plt.show()
-
-
 fig, ax = plt.subplots(figsize=(10, 6))
 x = np.arange(10, 51, 5)
 for f, l, c in zip(files, labels, colors):
-    y, y_error = calculate_y_yerr(filename=f'results/mem_usage/{f}.csv')
+    y, y_error = calculate_y_yerr(filename=f'results/exec_time/{f}.csv')
     ax.plot(x, y, marker='o', markersize=5, linewidth=2, label=l, color=c)
     ax.fill_between(x, y-y_error, y+y_error, alpha=0.3)
 ax.set_xlabel('Maze dimension', fontsize=12)
-ax.set_ylabel('Maximum memory allocation (MB)', fontsize=12)
+ax.set_ylabel('Execution time (sec)', fontsize=12)
 ax.legend(ncols=5, loc='upper center', bbox_to_anchor=(0.5, 1.1), fontsize=11)
 ax.semilogy()
-plt.savefig('figures/mem_usage.png', bbox_inches='tight')
+plt.savefig('figures/exec_time.png', bbox_inches='tight')
 plt.show()
+
+
+# fig, ax = plt.subplots(figsize=(10, 6))
+# x = np.arange(10, 51, 5)
+# for f, l, c in zip(files, labels, colors):
+#     y, y_error = calculate_y_yerr(filename=f'results/mem_usage/{f}.csv')
+#     ax.plot(x, y, marker='o', markersize=5, linewidth=2, label=l, color=c)
+#     ax.fill_between(x, y-y_error, y+y_error, alpha=0.3)
+# ax.set_xlabel('Maze dimension', fontsize=12)
+# ax.set_ylabel('Maximum memory allocation (MB)', fontsize=12)
+# ax.legend(ncols=5, loc='upper center', bbox_to_anchor=(0.5, 1.1), fontsize=11)
+# ax.semilogy()
+# plt.savefig('figures/mem_usage.png', bbox_inches='tight')
+# plt.show()

@@ -78,7 +78,19 @@ class MazeSolver:
 
         return None, visited, used_memory
     
-    def a_star(self):
+    def a_star(self, heuristic_fn='manhattan'):
+
+        def heuristic_function(node):
+            if heuristic_fn == 'manhattan':
+                return abs(self.end[0] - node[0]) + abs(self.end[1] - node[1])
+            elif heuristic_fn == 'euclidean':
+                return np.sqrt((self.end[0] - node[0])**2 + (self.end[1] - node[1])**2)
+            elif heuristic_fn == 'chebyshev':
+                return max(abs(self.end[0] - node[0]), abs(self.end[1] - node[1]))
+            elif heuristic_fn == 'zero':
+                return 0
+            else:
+                raise ValueError("Invalid heuristic function. Please choose from 'manhattan' or 'euclidean'.")
 
         queue = [] # A priority queue to add the nodes to visit
         queue.append((0, self.start, [self.start]))
@@ -101,7 +113,7 @@ class MazeSolver:
                 if (self.node_in_maze(next_node) and self.maze[next_node] == 0 and next_node not in explored):
                     explored.add(next_node)
                     path_cost = len(path) # Number of steps taken so far
-                    heuristic = abs(self.end[0] - next_node[0]) + abs(self.end[1] - next_node[1]) # Manhattan distance to the goal
+                    heuristic = heuristic_function(next_node) # Heuristic value
                     next_cost = path_cost + heuristic
                     queue.append((next_cost, next_node, path + [next_node]))
 

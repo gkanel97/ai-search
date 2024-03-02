@@ -134,12 +134,13 @@ class ExperimentRunner():
                 maze_generator = MazeGenerator(dimension=size, random_seed=seed)
                 maze = maze_generator.prim()
                 maze_solver = MazeSolver(maze)
+                maze_cells = np.count_nonzero(maze == 0)
                 _, exploration, _ = maze_solver.bfs()
-                percentage_explored['bfs'][i, j] = 100 * len(exploration) / (maze.shape[0] * maze.shape[1])
+                percentage_explored['bfs'][i, j] = 100 * len(exploration) / maze_cells
                 _, exploration, _ = maze_solver.dfs()
-                percentage_explored['dfs'][i, j] = 100 * len(exploration) / (maze.shape[0] * maze.shape[1])
+                percentage_explored['dfs'][i, j] = 100 * len(exploration) / maze_cells
                 _, exploration, _ = maze_solver.a_star()
-                percentage_explored['a_star'][i, j] = 100 * len(exploration) / (maze.shape[0] * maze.shape[1])
+                percentage_explored['a_star'][i, j] = 100 * len(exploration) / maze_cells
 
         os.makedirs('./results/percentage_explored', exist_ok=True)
         for alg, arr in percentage_explored.items():
@@ -157,4 +158,29 @@ class ExperimentRunner():
         ax.legend(ncols=3, loc='upper center', bbox_to_anchor=(0.5, 1.1), fontsize=11)
         plt.savefig('figures/percentage_explored.pdf', bbox_inches='tight')
         plt.show()
+
+    def a_star_heuristic_experiment(self):
+        tmp_arr = []
+        maze_size = 50
+        for heuristic in ['manhattan', 'euclidean', 'chebyshev', 'zero']:
+            for seed in self.random_seeds:
+                print(f"Creating maze with dimension = {maze_size} and random state = {seed}")
+                maze_generator = MazeGenerator(dimension=maze_size, random_seed=seed)
+                maze = maze_generator.prim()
+                maze_solver = MazeSolver(maze)
+                _, exploration, _ = maze_solver.a_star(heuristic_fn=heuristic)
+                tmp_arr.append(len(exploration))
+            print(f"Heuristic: {heuristic}, Mean: {np.mean(tmp_arr)}, Std: {np.std(tmp_arr)}")
+
+
+if __name__ == '__main__':
+    exp_runner = ExperimentRunner()
+    exp_runner.execution_time_experiment()
+    exp_runner.memory_usage_experiment()
+    exp_runner.plot_execution_time()
+    exp_runner.plot_memory_usage()
+    exp_runner.percentage_of_explored_cells_experiment()
+    exp_runner.plot_percentage_explored()
+    exp_runner.a_star_heuristic_experiment()
+    exp_runner.gamma_experiment()
         

@@ -44,11 +44,35 @@ class MazeVisualiser:
             plt.savefig(filename, bbox_inches='tight', pad_inches=0)
         plt.show()
 
+    def animate_search_algorithm(self, explored, path, filename=None):
+
+        fig, ax = plt.subplots(figsize=(8, 8))
+
+        def animate(i):
+            ax.clear()
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax.set_title(f"Iteration {i}")
+            ax.imshow(self.maze, cmap=plt.cm.binary, interpolation='nearest')
+            if path is not None and i == len(explored):
+                x_coords = [x[1] for x in path]
+                y_coords = [y[0] for y in path]
+                ax.plot(x_coords, y_coords, color='red', linewidth=2)
+            if explored is not None:
+                x_coords = [x[1] for x in explored[:i]]
+                y_coords = [y[0] for y in explored[:i]]
+            ax.scatter(x_coords, y_coords, color='royalblue', s=500)
+
+        ani = animation.FuncAnimation(fig, animate, frames=len(explored)+1, interval=750, repeat_delay=5000)
+        if filename is not None:
+            ani.save(filename, writer='pillow')
+        plt.show()
+
     def draw_value_policy(self, value_function, policy, title='', path=None, ax=None, max_value=None, filename=None):
         
         fig = None
         if ax is None:
-            fig, ax = plt.subplots(figsize=(10, 10))
+            fig, ax = plt.subplots(figsize=(8,8))
         ax.set_xticks([])
         ax.set_yticks([])
 

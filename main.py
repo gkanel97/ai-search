@@ -6,12 +6,12 @@ from maze_visualiser import MazeVisualiser
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dim', type=int, default=5, help='Dimension of the maze')
+    parser.add_argument('--dim', type=int, default=20, help='Dimension of the maze')
     parser.add_argument('--alg', type=str, default='bfs', choices=['bfs', 'dfs', 'a_star', 'value_iteration', 'policy_iteration'], help='Solver algorithm')
     parser.add_argument('--seed', type=int, default=17, help='Random seed')
     parser.add_argument('--hist', action='store_true', help='Show the history of the search algorithm')
     parser.add_argument('--anim', action='store_true', help='Enable animation')
-    parser.add_argument('--filename', type=str, default='figure', help='Filename to save the figure')
+    parser.add_argument('--filename', type=str, default=None, help='Filename to save the figure')
     
     args = parser.parse_args()
 
@@ -35,13 +35,22 @@ if __name__ == '__main__':
 
     if solver_algorithm == 'bfs':
         path, exploration, _ = maze_solver.bfs()
-        visualiser.draw_search_algorithm(path=path, explored=exploration if search_history else None, filename=filename)
+        if enable_animation:
+            visualiser.animate_search_algorithm(explored=exploration, path=path, filename=filename)
+        else: 
+            visualiser.draw_search_algorithm(path=path, explored=exploration if search_history else None, filename=filename)
     elif solver_algorithm == 'dfs':
         path, exploration, _ = maze_solver.dfs()
-        visualiser.draw_search_algorithm(path=path, explored=exploration if search_history else None, filename=filename)
+        if enable_animation:
+            visualiser.animate_search_algorithm(explored=exploration, path=path, filename=filename)
+        else:
+            visualiser.draw_search_algorithm(path=path, explored=exploration if search_history else None, filename=filename)
     elif solver_algorithm == 'a_star':
         path, exploration, _ = maze_solver.a_star()
-        visualiser.draw_search_algorithm(path=path, explored=exploration if search_history else None, filename=filename)
+        if enable_animation:
+            visualiser.animate_search_algorithm(explored=exploration, path=path, filename=filename)
+        else:
+            visualiser.draw_search_algorithm(path=path, explored=exploration if search_history else None, filename=filename)
     elif solver_algorithm == 'value_iteration':
         value_function, path, history, _ = maze_solver.makrov_value_iteration()
         if enable_animation:

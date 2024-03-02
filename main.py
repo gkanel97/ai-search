@@ -3,12 +3,23 @@ from maze_solver import MazeSolver
 from maze_generator import MazeGenerator
 from maze_visualiser import MazeVisualiser
 
-if __name__ == '__main__':
+def main():
+    """
+    Main function to run the maze solver.
 
+    This function parses the command line arguments, generates a maze, and solves it using the specified algorithm.
+    It then visualizes the search algorithm or value/policy iteration based on the user's choice.
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--dim', type=int, default=20, help='Dimension of the maze')
     parser.add_argument('--alg', type=str, default='bfs', choices=['bfs', 'dfs', 'a_star', 'value_iteration', 'policy_iteration'], help='Solver algorithm')
-    parser.add_argument('--seed', type=int, default=17, help='Random seed')
+    parser.add_argument('--seed', type=int, default=None, help='Random seed')
     parser.add_argument('--hist', action='store_true', help='Show the history of the search algorithm')
     parser.add_argument('--anim', action='store_true', help='Enable animation')
     parser.add_argument('--filename', type=str, default=None, help='Filename to save the figure')
@@ -28,7 +39,7 @@ if __name__ == '__main__':
     if maze_dimension > 11 and search_history:
         raise ValueError("Search history can only be visualised for mazes with dimension <= 23.")
 
-    maze_generator = MazeGenerator(dimension=maze_dimension, random_seed=17)
+    maze_generator = MazeGenerator(dimension=maze_dimension, random_seed=random_seed)
     maze = maze_generator.prim()
     visualiser = MazeVisualiser(maze)
     maze_solver = MazeSolver(maze, keep_history=True)
@@ -63,3 +74,6 @@ if __name__ == '__main__':
             visualiser.animate_value_policy(history=history, path=path, filename=filename)
         else:
             visualiser.draw_value_policy(value_function=value_function, policy=policy, path=path, filename=filename)
+
+if __name__ == '__main__':
+    main()

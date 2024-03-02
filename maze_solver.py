@@ -3,7 +3,40 @@ import numpy as np
 from queue import Queue
 from utils import get_deep_size
 
+import numpy as np
+
 class MazeSolver:
+    """
+    A class that solves a maze using various algorithms.
+
+    Parameters:
+    - maze (numpy.ndarray): The maze represented as a 2D numpy array.
+    - keep_history (bool): Whether to keep a history of the value function or policy during iteration (default: False).
+    - record_memory (bool): Whether to record the memory usage during iteration (default: False).
+
+    Attributes:
+    - maze (numpy.ndarray): The maze represented as a 2D numpy array.
+    - start (tuple): The starting position in the maze.
+    - end (tuple): The ending position in the maze.
+    - moves (list): The possible moves in the maze (up, down, left, right).
+    - goal_reward (int): The reward value for reaching the goal.
+    - wall_penalty (int): The penalty value for hitting a wall.
+    - keep_history (bool): Whether to keep a history of the value function or policy during iteration.
+    - record_memory (bool): Whether to record the memory usage during iteration.
+
+    Methods:
+    - node_in_maze(node): Checks if a given node is within the maze.
+    - bfs(): Performs breadth-first search to find the optimal path in the maze.
+    - dfs(): Performs depth-first search to find the optimal path in the maze.
+    - a_star(heuristic_fn='manhattan'): Performs A* search to find the optimal path in the maze.
+    - value_has_converged(curr_array, next_array): Checks if the value function has converged.
+    - policy_has_converged(curr_array, next_array): Checks if the policy has converged.
+    - find_optimal_path(value_function): Finds the optimal path based on the value function.
+    - define_transition_probabilities(): Defines the transition probabilities for each move in the maze.
+    - define_reward_function(): Defines the reward function for each position in the maze.
+    - makrov_value_iteration(max_iterations=1e6, gamma=0.9): Performs Markov Decision Process value iteration.
+    - makrov_policy_iteration(max_iterations=1e6, gamma=0.9): Performs Markov Decision Process policy iteration.
+    """
 
     def __init__(self, maze, keep_history=False, record_memory=False):
         self.maze = maze
@@ -16,11 +49,25 @@ class MazeSolver:
         self.record_memory = record_memory
 
     def node_in_maze(self, node):
+        """
+        Checks if a given node is within the maze.
+
+        Parameters:
+        - node (tuple): The node to check.
+
+        Returns:
+        - bool: True if the node is within the maze, False otherwise.
+        """
         x, y = node
         return x >= 0 and y >= 0 and x < self.maze.shape[0] and y < self.maze.shape[1]
     
     def bfs(self):
-        
+        """
+        Performs breadth-first search to find the optimal path in the maze.
+
+        Returns:
+        - tuple: A tuple containing the optimal path, visited nodes, and memory usage.
+        """
         queue = Queue() # A queue to add the nodes to visit
         queue.put((self.start, [self.start]))
         explored = set() # A set to store explored nodes
@@ -48,9 +95,14 @@ class MazeSolver:
             )
 
         return None, visited, used_memory
-    
+
     def dfs(self):
-        
+        """
+        Performs depth-first search to find the optimal path in the maze.
+
+        Returns:
+        - tuple: A tuple containing the optimal path, visited nodes, and memory usage.
+        """
         stack = [(self.start, [self.start])] # A stack to add the nodes to visit
         explored = set()
         explored.add(self.start) 
@@ -79,7 +131,15 @@ class MazeSolver:
         return None, visited, used_memory
     
     def a_star(self, heuristic_fn='manhattan'):
+        """
+        Performs A* search to find the optimal path in the maze.
 
+        Parameters:
+        - heuristic_fn (str): The heuristic function to use (default: 'manhattan').
+
+        Returns:
+        - tuple: A tuple containing the optimal path, visited nodes, and memory usage.
+        """
         def heuristic_function(node):
             if heuristic_fn == 'manhattan':
                 return abs(self.end[0] - node[0]) + abs(self.end[1] - node[1])
@@ -129,12 +189,41 @@ class MazeSolver:
         return None, visited, used_memory
     
     def value_has_converged(self, curr_array, next_array):
+        """
+        Checks if the value function has converged.
+
+        Parameters:
+        - curr_array (numpy.ndarray): The current value function.
+        - next_array (numpy.ndarray): The next value function.
+
+        Returns:
+        - bool: True if the value function has converged, False otherwise.
+        """
         return np.all(np.isclose(curr_array, next_array, atol=1e-9, rtol=1e-6))
     
     def policy_has_converged(self, curr_array, next_array):
+        """
+        Checks if the policy has converged.
+
+        Parameters:
+        - curr_array (numpy.ndarray): The current policy.
+        - next_array (numpy.ndarray): The next policy.
+
+        Returns:
+        - bool: True if the policy has converged, False otherwise.
+        """
         return np.all(curr_array == next_array)
     
     def find_optimal_path(self, value_function):
+        """
+        Finds the optimal path based on the value function.
+
+        Parameters:
+        - value_function (numpy.ndarray): The value function.
+
+        Returns:
+        - list: The optimal path.
+        """
         path = [self.start]
         while path[-1] != self.end:
             x, y = path[-1]
@@ -148,6 +237,7 @@ class MazeSolver:
                     possible_moves.append(value_function[next_move])
                 else:
                     possible_moves.append(self.wall_penalty)
+            # Check if the path is blocked or stuck in a loop
             if np.max(possible_moves) == self.wall_penalty:
                 print("No path found!")
                 return None
@@ -159,6 +249,12 @@ class MazeSolver:
         return path
     
     def define_transition_probabilities(self):
+        """
+        Defines the transition probabilities for each move in the maze.
+
+        Returns:
+        - numpy.ndarray: The transition probabilities.
+        """
         transition_probabilities = np.zeros((self.maze.shape[0], self.maze.shape[1], len(self.moves)))
         for i, (dx, dy) in enumerate(self.moves):
             for x in range(self.maze.shape[0]):
@@ -168,15 +264,34 @@ class MazeSolver:
                         transition_probabilities[x, y, i] = 1
         return transition_probabilities
     
-    def makrov_value_iteration(self, max_iterations=1e6, gamma=0.9):
+    def define_reward_function(self):
+        """
+        Defines the reward function for each position in the maze.
 
-        # Initializations
-        value_function = np.zeros(self.maze.shape)
-        history = dict(value=[value_function]) if self.keep_history else None
+        Returns:
+        - numpy.ndarray: The reward function.
+        """
         reward_function = np.zeros(self.maze.shape)
         reward_function[self.end] = self.goal_reward
+        return reward_function
+    
+    def makrov_value_iteration(self, max_iterations=1e6, gamma=0.9):
+        """
+        Performs Markov Decision Process value iteration.
+
+        Parameters:
+        - max_iterations (int): The maximum number of iterations (default: 1e6).
+        - gamma (float): The discount factor (default: 0.9).
+
+        Returns:
+        - tuple: A tuple containing the value function, optimal path, history, and memory usage.
+        """
+         # Initializations
+        value_function = np.zeros(self.maze.shape)
+        history = dict(value=[value_function]) if self.keep_history else None
+        reward_function = self.define_reward_function()
         transition_probabilities = self.define_transition_probabilities()
-        used_memory = 0 # Memory usage
+        used_memory = 0
 
         # Perform the value iteration
         iter = 0
@@ -227,15 +342,24 @@ class MazeSolver:
         return value_function, optimal_path, history, used_memory
     
     def makrov_policy_iteration(self, max_iterations=1e6, gamma=0.9):
+        """
+        Performs Markov Decision Process policy iteration.
+
+        Parameters:
+        - max_iterations (int): The maximum number of iterations (default: 1e6).
+        - gamma (float): The discount factor (default: 0.9).
+
+        Returns:
+        - tuple: A tuple containing the value function, optimal path, history, and memory usage.
+        """
 
         # Initializations
         value_function = np.zeros(self.maze.shape)
         policy = [random.choices(self.moves, k=self.maze.shape[1]) for _ in range(self.maze.shape[0])]
         history = dict(value=[value_function], policy=[policy]) if self.keep_history else None
-        reward_function = np.zeros(self.maze.shape)
-        reward_function[self.end] = self.goal_reward
+        reward_function = self.define_reward_function()
         transition_probabilities = self.define_transition_probabilities()
-        used_memory = 0 # Memory usage
+        used_memory = 0
 
         # Perform the policy iteration
         iter = 0
@@ -280,8 +404,7 @@ class MazeSolver:
                                 )
                             )
                         else:
-                            possible_moves.append(self.wall_penalty)
-                    
+                            possible_moves.append(self.wall_penalty)                    
                     new_policy[x][y] = self.moves[np.argmax(possible_moves)]
 
             policy_converged = self.policy_has_converged(new_policy, policy)

@@ -1,14 +1,50 @@
-import matplotlib as mpl
-from matplotlib import animation
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib import animation
+
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+import numpy as np
+import matplotlib.animation as animation
 
 class MazeVisualiser:
+    """
+    A class for visualizing mazes and search algorithms.
+
+    Parameters:
+    maze (numpy.ndarray): The maze grid.
+
+    Methods:
+    draw_search_algorithm(path=None, explored=None, filename=None):
+        Draws the maze with the search algorithm's path and explored cells.
+
+    animate_search_algorithm(explored, path, filename=None):
+        Creates an animation of the search algorithm's exploration and path.
+
+    draw_value_policy(value_function, policy, title='', path=None, ax=None, max_value=None, filename=None):
+        Draws the maze with the value function and policy.
+
+    animate_value_policy(history, path=None, filename=None):
+        Creates an animation of the value function and policy evolution.
+
+    """
 
     def __init__(self, maze):
         self.maze = maze
 
     def draw_search_algorithm(self, path=None, explored=None, filename=None):
+        """
+        Draws the maze with the search algorithm's path and explored cells.
+
+        Parameters:
+        path (list): List of coordinates representing the path.
+        explored (list): List of coordinates representing the explored cells.
+        filename (str): Name of the file to save the image.
+
+        Returns:
+        None
+        """
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10,10), layout='constrained')
     
         # Set the border color to white
@@ -45,7 +81,17 @@ class MazeVisualiser:
         plt.show()
 
     def animate_search_algorithm(self, explored, path, filename=None):
+        """
+        Creates an animation of the search algorithm's exploration and path.
 
+        Parameters:
+        explored (list): List of coordinates representing the explored cells.
+        path (list): List of coordinates representing the path.
+        filename (str): Name of the file to save the animation.
+
+        Returns:
+        None
+        """
         fig, ax = plt.subplots(figsize=(8, 8))
 
         def animate(i):
@@ -69,7 +115,21 @@ class MazeVisualiser:
         plt.show()
 
     def draw_value_policy(self, value_function, policy, title='', path=None, ax=None, max_value=None, filename=None):
-        
+        """
+        Draws the maze with the value function and policy.
+
+        Parameters:
+        value_function (numpy.ndarray): The value function.
+        policy (numpy.ndarray): The policy.
+        title (str): The title of the plot.
+        path (list): List of coordinates representing the path.
+        ax (matplotlib.axes.Axes): The axes to draw on. If None, a new figure and axes will be created.
+        max_value (float): The maximum value for color scaling. If None, the maximum value in the value function will be used.
+        filename (str): Name of the file to save the image.
+
+        Returns:
+        None
+        """
         fig = None
         if ax is None:
             fig, ax = plt.subplots(figsize=(8,8))
@@ -125,15 +185,18 @@ class MazeVisualiser:
         if fig is not None:
             plt.show()
 
-    '''
-    Create an animation with the evolution of the value function and policy
-    A heatmap is used to represent the value function at each iteration over the maze
-    Arguments:
-    history -- dictionary with list of values and policies
-    filename -- name of the file to save the animation
-    '''
     def animate_value_policy(self, history, path=None, filename=None):
+        """
+        Creates an animation of the value function and policy evolution.
 
+        Parameters:
+        history (dict): Dictionary with lists of values and policies.
+        path (list): List of coordinates representing the path.
+        filename (str): Name of the file to save the animation.
+
+        Returns:
+        None
+        """
         max_value = np.max(history['value'])
 
         fig, ax = plt.subplots(figsize=(10, 10))

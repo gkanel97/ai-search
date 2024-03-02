@@ -1,7 +1,15 @@
 import sys
 
 def get_deep_size(obj):
-    """Recursively finds size of objects"""
+    """
+    Recursively finds the size of objects.
+
+    Parameters:
+    obj (object): The object for which the size needs to be calculated.
+
+    Returns:
+    int: The size of the object in bytes.
+    """
     size = sys.getsizeof(obj)
     if isinstance(obj, dict):
         size += sum([get_deep_size(v) for v in obj.values()])

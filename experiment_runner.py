@@ -7,6 +7,28 @@ from maze_solver import MazeSolver
 from maze_generator import MazeGenerator
 
 class ExperimentRunner():
+    """
+    Class for running experiments on maze solving algorithms.
+
+    Attributes:
+        input_sizes (numpy.ndarray): Array of input sizes for the experiments.
+        random_seeds (numpy.ndarray): Array of random seeds for the experiments.
+        algorithms (list): List of algorithm names.
+        labels (list): List of labels for the algorithms.
+        colors (list): List of colors for the algorithms.
+
+    Methods:
+        calculate_execution_time(solver_fn): Calculates the execution time of a solver function.
+        record_memory_usage(solver_fn): Records the memory usage of a solver function.
+        execution_time_experiment(): Runs the execution time experiment.
+        memory_usage_experiment(): Runs the memory usage experiment.
+        calculate_y_yerr_from_file(filename): Calculates y and y_error from a file.
+        plot_execution_time(): Plots the execution time experiment results.
+        plot_memory_usage(): Plots the memory usage experiment results.
+        percentage_of_explored_cells_experiment(): Runs the percentage of explored cells experiment.
+        plot_percentage_explored(): Plots the percentage of explored cells experiment results.
+        a_star_heuristic_experiment(): Runs the A* heuristic experiment.
+    """
 
     def __init__(self) -> None:
         self.input_sizes = np.arange(10, 51, 5)
@@ -16,16 +38,37 @@ class ExperimentRunner():
         self.colors = ['royalblue', 'darkgoldenrod', 'darkgreen', 'purple', 'black']
 
     def calculate_execution_time(self, solver_fn):
+        """
+        Calculates the execution time of a solver function.
+
+        Args:
+            solver_fn (function): The solver function to be executed.
+
+        Returns:
+            float: The execution time in seconds.
+        """
         t_start = time.perf_counter()
         solver_fn()
         t_end = time.perf_counter()
         return t_end - t_start
 
     def record_memory_usage(self, solver_fn):
+        """
+        Records the memory usage of a solver function.
+
+        Args:
+            solver_fn (function): The solver function to be executed.
+
+        Returns:
+            float: The memory usage in bytes.
+        """
         ret_val = solver_fn()
         return ret_val[-1] # Memory usage is the last element in the return value
 
     def execution_time_experiment(self):
+        """
+        Runs the execution time experiment.
+        """
         exec_times = {
             'bfs': np.zeros((len(self.input_sizes), len(self.random_seeds))),
             'dfs': np.zeros((len(self.input_sizes), len(self.random_seeds))),
@@ -51,6 +94,9 @@ class ExperimentRunner():
                 np.savetxt(f'./results/exec_time/{alg}.csv', arr, delimiter=',')
 
     def memory_usage_experiment(self):
+        """
+        Runs the memory usage experiment.
+        """
         memory_usage = {
             'bfs': np.zeros((len(self.input_sizes), len(self.random_seeds))),
             'dfs': np.zeros((len(self.input_sizes), len(self.random_seeds))),
@@ -76,6 +122,15 @@ class ExperimentRunner():
                 np.savetxt(f'./results/memory_usage/{alg}.csv', arr, delimiter=',')
 
     def calculate_y_yerr_from_file(self, filename):
+        """
+        Calculates y and y_error from a file.
+
+        Args:
+            filename (str): The filename of the file containing the data.
+
+        Returns:
+            tuple: A tuple containing y (mean) and y_error (standard deviation) arrays.
+        """
         with open(filename, 'r') as fp:
             result_arr = []
             line = fp.readline()
@@ -92,6 +147,9 @@ class ExperimentRunner():
         return (y, y_error)
     
     def plot_execution_time(self):
+        """
+        Plots the execution time experiment results.
+        """
         fig, ax = plt.subplots(figsize=(10, 6))
         x = self.input_sizes * 2
         for alg, label, color in zip(self.algorithms, self.labels, self.colors):
@@ -106,6 +164,9 @@ class ExperimentRunner():
         plt.show()
 
     def plot_memory_usage(self):
+        """
+        Plots the memory usage experiment results.
+        """
         fig, ax = plt.subplots(figsize=(10, 6))
         x = self.input_sizes * 2
         for alg, label, color in zip(self.algorithms, self.labels, self.colors):
@@ -121,7 +182,9 @@ class ExperimentRunner():
         plt.show()
 
     def percentage_of_explored_cells_experiment(self):
-
+        """
+        Runs the percentage of explored cells experiment.
+        """
         percentage_explored = {
             'bfs': np.zeros((len(self.input_sizes), len(self.random_seeds))),
             'dfs': np.zeros((len(self.input_sizes), len(self.random_seeds))),
@@ -147,6 +210,9 @@ class ExperimentRunner():
             np.savetxt(f'./results/percentage_explored/{alg}.csv', arr, delimiter=',')
 
     def plot_percentage_explored(self):
+        """
+        Plots the percentage of explored cells experiment results.
+        """
         fig, ax = plt.subplots(figsize=(10, 6))
         x = self.input_sizes * 2
         for alg, label, color in zip(['bfs', 'dfs', 'a_star'], ['BFS', 'DFS', 'A*'], ['royalblue', 'darkgoldenrod', 'darkgreen']):
@@ -160,6 +226,9 @@ class ExperimentRunner():
         plt.show()
 
     def a_star_heuristic_experiment(self):
+        """
+        Runs the A* heuristic experiment.
+        """
         tmp_arr = []
         maze_size = 50
         for heuristic in ['manhattan', 'euclidean', 'chebyshev', 'zero']:

@@ -34,8 +34,8 @@ class MazeSolver:
     - find_optimal_path(value_function): Finds the optimal path based on the value function.
     - define_transition_probabilities(): Defines the transition probabilities for each move in the maze.
     - define_reward_function(): Defines the reward function for each position in the maze.
-    - makrov_value_iteration(max_iterations=1e6, gamma=0.9): Performs Markov Decision Process value iteration.
-    - makrov_policy_iteration(max_iterations=1e6, gamma=0.9): Performs Markov Decision Process policy iteration.
+    - value_iteration(max_iterations=1e6, gamma=0.9): Performs Markov Decision Process value iteration.
+    - policy_iteration(max_iterations=1e6, gamma=0.9): Performs Markov Decision Process policy iteration.
     """
 
     def __init__(self, maze, keep_history=False, record_memory=False):
@@ -275,7 +275,7 @@ class MazeSolver:
         reward_function[self.end] = self.goal_reward
         return reward_function
     
-    def makrov_value_iteration(self, max_iterations=1e6, gamma=0.9):
+    def value_iteration(self, max_iterations=1e6, gamma=0.9):
         """
         Performs Markov Decision Process value iteration.
 
@@ -341,7 +341,7 @@ class MazeSolver:
         
         return value_function, optimal_path, history, used_memory
     
-    def makrov_policy_iteration(self, max_iterations=1e6, gamma=0.9):
+    def policy_iteration(self, max_iterations=1e6, gamma=0.9):
         """
         Performs Markov Decision Process policy iteration.
 

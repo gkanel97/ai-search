@@ -38,6 +38,11 @@ This program is a maze solver that generates a maze and solves it using various 
 
 ### Examples
 
+- Create a 50x50 maze:
+    ```shell
+    python main.py --dim 50
+    ```
+
 - Run all the maze solvers for a 10x10 maze with animation:
 
     ```shell

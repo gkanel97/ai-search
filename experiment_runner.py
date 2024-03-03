@@ -86,8 +86,8 @@ class ExperimentRunner():
                 exec_times['bfs'][i, j] = self.calculate_execution_time(maze_solver.bfs)
                 exec_times['dfs'][i, j] = self.calculate_execution_time(maze_solver.dfs)
                 exec_times['a_star'][i, j] = self.calculate_execution_time(maze_solver.a_star)
-                exec_times['value_iteration'][i, j] = self.calculate_execution_time(maze_solver.makrov_value_iteration)
-                exec_times['policy_iteration'][i, j] = self.calculate_execution_time(maze_solver.makrov_policy_iteration)
+                exec_times['value_iteration'][i, j] = self.calculate_execution_time(maze_solver.value_iteration)
+                exec_times['policy_iteration'][i, j] = self.calculate_execution_time(maze_solver.policy_iteration)
 
             os.makedirs('./results/exec_time', exist_ok=True)
             for alg, arr in exec_times.items():
@@ -114,8 +114,8 @@ class ExperimentRunner():
                 memory_usage['bfs'][i, j] = self.record_memory_usage(maze_solver.bfs)
                 memory_usage['dfs'][i, j] = self.record_memory_usage(maze_solver.dfs)
                 memory_usage['a_star'][i, j] = self.record_memory_usage(maze_solver.a_star)
-                memory_usage['value_iteration'][i, j] = self.record_memory_usage(maze_solver.makrov_value_iteration)
-                memory_usage['policy_iteration'][i, j] = self.record_memory_usage(maze_solver.makrov_policy_iteration)
+                memory_usage['value_iteration'][i, j] = self.record_memory_usage(maze_solver.value_iteration)
+                memory_usage['policy_iteration'][i, j] = self.record_memory_usage(maze_solver.policy_iteration)
 
             os.makedirs('./results/memory_usage', exist_ok=True)
             for alg, arr in memory_usage.items():

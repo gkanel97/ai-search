@@ -37,7 +37,7 @@ def main():
         if solver_algorithm not in ['bfs', 'dfs', 'a_star', 'value_iteration', 'policy_iteration']:
             raise ValueError("Invalid solver algorithm. Please choose from 'bfs', 'dfs', 'a_star', 'value_iteration', 'policy_iteration'.")
     
-    if maze_dimension > 11 and search_history:
+    if maze_dimension > 23 and search_history:
         raise ValueError("Search history can only be visualised for mazes with dimension <= 23.")
 
     maze_generator = MazeGenerator(dimension=maze_dimension, random_seed=random_seed)

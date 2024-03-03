@@ -18,7 +18,7 @@ def main():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--dim', type=int, default=20, help='Dimension of the maze')
-    parser.add_argument('--alg', type=str, default='bfs', choices=['bfs', 'dfs', 'a_star', 'value_iteration', 'policy_iteration'], help='Solver algorithm')
+    parser.add_argument('--alg', type=str, default=None, choices=['bfs', 'dfs', 'a_star', 'value_iteration', 'policy_iteration'], help='Solver algorithm')
     parser.add_argument('--seed', type=int, default=None, help='Random seed')
     parser.add_argument('--hist', action='store_true', help='Show the history of the search algorithm')
     parser.add_argument('--anim', action='store_true', help='Enable animation')
@@ -33,8 +33,9 @@ def main():
     search_history = args.hist
     random_seed = args.seed
 
-    if solver_algorithm not in ['bfs', 'dfs', 'a_star', 'value_iteration', 'policy_iteration']:
-        raise ValueError("Invalid solver algorithm. Please choose from 'bfs', 'dfs', 'a_star', 'value_iteration', 'policy_iteration'.")
+    if solver_algorithm is not None:
+        if solver_algorithm not in ['bfs', 'dfs', 'a_star', 'value_iteration', 'policy_iteration']:
+            raise ValueError("Invalid solver algorithm. Please choose from 'bfs', 'dfs', 'a_star', 'value_iteration', 'policy_iteration'.")
     
     if maze_dimension > 11 and search_history:
         raise ValueError("Search history can only be visualised for mazes with dimension <= 23.")
@@ -44,7 +45,9 @@ def main():
     visualiser = MazeVisualiser(maze)
     maze_solver = MazeSolver(maze, keep_history=True)
 
-    if solver_algorithm == 'bfs':
+    if solver_algorithm is None:
+        visualiser.draw_search_algorithm(path=None, explored=None, filename=filename)
+    elif solver_algorithm == 'bfs':
         path, exploration, _ = maze_solver.bfs()
         if enable_animation:
             visualiser.animate_search_algorithm(explored=exploration, path=path, filename=filename)
@@ -63,13 +66,13 @@ def main():
         else:
             visualiser.draw_search_algorithm(path=path, explored=exploration if search_history else None, filename=filename)
     elif solver_algorithm == 'value_iteration':
-        value_function, path, history, _ = maze_solver.makrov_value_iteration()
+        value_function, path, history, _ = maze_solver.value_iteration()
         if enable_animation:
             visualiser.animate_value_policy(history=history, path=path, filename=filename)
         else:
             visualiser.draw_value_policy(value_function=value_function, policy=None, path=path, filename=filename)
     elif solver_algorithm == 'policy_iteration':
-        policy, value_function, path, history, _ = maze_solver.makrov_policy_iteration()
+        policy, value_function, path, history, _ = maze_solver.policy_iteration()
         if enable_animation:
             visualiser.animate_value_policy(history=history, path=path, filename=filename)
         else:

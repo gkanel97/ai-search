@@ -4,6 +4,19 @@
 
 This program is a maze solver that generates a maze and solves it using various algorithms. It provides visualization options to display the search algorithm or value/policy iteration.
 
+## Table of Contents
+- [Prerequisites](#prerequisites)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Notes](#notes)
+- [Demonstration video](#demonstration-video)
+- [License](#license)
+
+## Prerequisites
+
+- Python 3.x
+- pip
+
 ### Usage
 
 1. Unzip the source code.
@@ -76,3 +89,11 @@ This program is a maze solver that generates a maze and solves it using various 
 - Press the 'X' button or close the window to exit the program.
 
 - For more information, refer to the source code documentation.
+
+### Demonstration video
+
+[Watch the demo video here](https://drive.google.com/file/d/1O9eeJZ_qjNyKexbEupOCmB-yny-P05LD/view?usp=drive_link)
+
+### License
+
+This project is licensed under the MIT License - see the [LICENCE.md](LICENCE.md) file for details
